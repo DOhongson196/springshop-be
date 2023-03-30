@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 
+@CrossOrigin(origins= {"*"}, maxAge = 4800, allowCredentials = "false" )
 @RestController
 @RequestMapping("/api/v1/categories")
 public class CategoryController {
@@ -25,6 +26,7 @@ public class CategoryController {
 
     @Autowired
     MapValidationErrorService mapValidationErrorService;
+
     @PostMapping
     public ResponseEntity<?> createCategory(@Valid  @RequestBody CategoryDto dto,
                                             BindingResult result){
@@ -42,6 +44,7 @@ public class CategoryController {
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
+
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateCategory(
             @PathVariable("id") Long id,
@@ -56,10 +59,12 @@ public class CategoryController {
         return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
+
     @GetMapping()
     public ResponseEntity<?> getCategories(){
         return new ResponseEntity<>(categoryService.findAll(),HttpStatus.OK);
     }
+
 
     @GetMapping("/page")
     public ResponseEntity<?> getCategories(
@@ -68,10 +73,14 @@ public class CategoryController {
         return new ResponseEntity<>(categoryService.findAll(pageable),HttpStatus.OK);
     }
 
+
+
     @GetMapping("/{id}/get")
     public ResponseEntity<?> getCategories(@PathVariable("id") Long id){
         return new ResponseEntity<>(categoryService.findById(id),HttpStatus.OK);
     }
+
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteCategories(@PathVariable("id") Long id){
