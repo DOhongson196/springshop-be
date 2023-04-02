@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -48,6 +49,27 @@ public class ManufacturerController {
         }
 
         Manufacturer entity = manufacturerService.insertManufacturer(dto);
+
+        dto.setId(entity.getId());
+        dto.setLogo(entity.getLogo());
+
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
+    }
+
+    @PatchMapping (
+            value = "/{id}",
+            consumes = {MediaType.APPLICATION_JSON_VALUE,
+                MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                MediaType.MULTIPART_FORM_DATA_VALUE},
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updateManufacturer(@PathVariable Long id,@Valid @ModelAttribute ManufacturerDto dto,
+                                                BindingResult result){
+        ResponseEntity<?> responseEntity = mapValidationErrorService.mapValidationFields(result);
+        if(responseEntity != null){
+            return responseEntity;
+        }
+
+        Manufacturer entity = manufacturerService.updateManufacturer(id,dto);
 
         dto.setId(entity.getId());
         dto.setLogo(entity.getLogo());
@@ -98,11 +120,31 @@ public class ManufacturerController {
         return new ResponseEntity<>(newList,HttpStatus.OK);
     }
 
+    @GetMapping("/find")
+    public ResponseEntity<?> getManufacturer(@RequestParam("query") String query,
+                                             @PageableDefault(size=2,sort="name",direction = Sort.Direction.ASC) Pageable pageable){
+        var list = manufacturerService.findByName(query,pageable);
+        var newList = list.stream().map(item -> {
+            ManufacturerDto dto = new ManufacturerDto();
+            BeanUtils.copyProperties(item,dto);
+            return dto;
+        }).collect(Collectors.toList());
+        var newPage = new PageImpl<ManufacturerDto>(newList,list.getPageable(),list.getTotalPages());
+        return new ResponseEntity<>(newPage,HttpStatus.OK);
+    }
+
     @GetMapping("/{id}/get")
     public ResponseEntity<?> getManufacturer(@PathVariable Long id){
         var entity = manufacturerService.findById(id);
             ManufacturerDto dto = new ManufacturerDto();
             BeanUtils.copyProperties(entity,dto);
         return new ResponseEntity<>(dto,HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteManufacturer(@PathVariable Long id){
+        manufacturerService.deleteById(id);
+
+        return new ResponseEntity<>("Manufacturer id " + id + " was delete",HttpStatus.OK);
     }
 }

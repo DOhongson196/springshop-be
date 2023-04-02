@@ -42,6 +42,25 @@ public class ManufacturerService {
         return manufacturerRepository.save(entity);
     }
 
+    public Manufacturer updateManufacturer(Long id,ManufacturerDto dto){
+        var found = manufacturerRepository.findById(id);
+
+        if(found.isEmpty()){
+            throw new ManufacturerException("Manufacturer is not found");
+        }
+
+        Manufacturer entity = new Manufacturer();
+
+        BeanUtils.copyProperties(dto,entity);
+        if(dto.getLogoFile() != null){
+            String filename = fileStorageService.storeLogoFile(dto.getLogoFile());
+
+            entity.setLogo(filename);
+            dto.setLogoFile(null);
+        }
+        return manufacturerRepository.save(entity);
+    }
+
     public List<?> findAll(){
         return manufacturerRepository.findAll();
     }
@@ -50,11 +69,21 @@ public class ManufacturerService {
         return manufacturerRepository.findAll(pageable);
     }
 
+    public Page<Manufacturer> findByName(String name,Pageable pageable){
+        return manufacturerRepository.findByNameContainsIgnoreCase(name,pageable);
+    }
+
     public Manufacturer findById(Long id){
         Optional<Manufacturer> found = manufacturerRepository.findById(id);
         if(found.isEmpty()){
             throw new ManufacturerException("Not Found id: " + id);
         }
         return found.get();
+    }
+
+    public void deleteById(Long id){
+        Manufacturer existed = findById(id);
+
+        manufacturerRepository.delete(existed);
     }
 }
