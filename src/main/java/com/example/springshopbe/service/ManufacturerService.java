@@ -48,15 +48,17 @@ public class ManufacturerService {
         if(found.isEmpty()){
             throw new ManufacturerException("Manufacturer is not found");
         }
-
+        var preLogo = found.get().getLogo();
         Manufacturer entity = new Manufacturer();
 
         BeanUtils.copyProperties(dto,entity);
         if(dto.getLogoFile() != null){
             String filename = fileStorageService.storeLogoFile(dto.getLogoFile());
-
             entity.setLogo(filename);
             dto.setLogoFile(null);
+        }
+        if(entity.getLogo() == null){
+            entity.setLogo(preLogo);
         }
         return manufacturerRepository.save(entity);
     }

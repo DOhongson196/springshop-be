@@ -12,11 +12,7 @@ import lombok.Setter;
 @Setter
 @Entity
 @Table(name = "category")
-public class Category {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+public class Category extends AbstractEntity {
 
     @Column(name = "name", length = 100)
     private String name;
