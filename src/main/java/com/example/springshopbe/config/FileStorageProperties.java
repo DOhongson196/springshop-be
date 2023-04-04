@@ -11,4 +11,6 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "file")
 public class FileStorageProperties {
     private String uploadLogoDir;
+
+    private String uploadProductImageDir;
 }

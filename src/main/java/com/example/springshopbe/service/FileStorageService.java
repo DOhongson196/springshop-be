@@ -1,6 +1,7 @@
 package com.example.springshopbe.service;
 
 import com.example.springshopbe.config.FileStorageProperties;
+import com.example.springshopbe.dto.UploadedFileInfo;
 import com.example.springshopbe.exception.FileNotFoundException;
 import com.example.springshopbe.exception.FileStorageException;
 import org.springframework.core.io.Resource;
@@ -19,11 +20,17 @@ import java.util.UUID;
 public class FileStorageService {
     private final Path fileLogoStorageLocation;
 
+    private final Path fileProductImageStorageLocation;
+
     public FileStorageService(FileStorageProperties fileStorageProperties){
         this.fileLogoStorageLocation = Paths.get(fileStorageProperties.getUploadLogoDir())
                 .toAbsolutePath().normalize();
+        this.fileProductImageStorageLocation = Paths.get(fileStorageProperties.getUploadProductImageDir())
+                .toAbsolutePath().normalize();
         try {
             Files.createDirectories(fileLogoStorageLocation);
+
+            Files.createDirectories(fileProductImageStorageLocation);
 
         }catch (Exception ex){
             throw new FileStorageException("Could not create the directory where" +
@@ -34,6 +41,14 @@ public class FileStorageService {
 
     public String storeLogoFile(MultipartFile file){
         return storeFile(fileLogoStorageLocation,file);
+    }
+
+    public String storeProductImageFile(MultipartFile file){
+        return storeFile(fileProductImageStorageLocation,file);
+    }
+
+    public UploadedFileInfo storeUploadedProductImageFile(MultipartFile file){
+        return storeUploadedFile(fileProductImageStorageLocation,file);
     }
 
     private String storeFile(Path location, MultipartFile file){
@@ -55,8 +70,36 @@ public class FileStorageService {
         }
     }
 
+    private UploadedFileInfo storeUploadedFile(Path location, MultipartFile file){
+        UUID uuid = UUID.randomUUID();
+
+        String ext = StringUtils.getFilenameExtension(file.getOriginalFilename());
+        String filename = uuid.toString() + "." + ext;
+        try{
+            if(filename.contains("..")){
+                throw new FileStorageException("Sorry! Filename contains invalid path sequence " + filename);
+            }
+
+            Path targetLocation = location.resolve(filename);
+            Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+
+            UploadedFileInfo info = new UploadedFileInfo();
+            info.setFileName(filename);
+            info.setUid(uuid.toString());
+            info.setName(StringUtils.getFilename(file.getOriginalFilename()));
+
+            return  info;
+        }catch (Exception ex){
+            throw new FileStorageException("Could not store file " + filename + ". Please try again!", ex);
+        }
+    }
+
     public Resource loadLogoFileAsResource(String filename){
         return loadFileAsResource(fileLogoStorageLocation,filename);
+    }
+
+    public Resource loadProductImageFileAsResource(String filename){
+        return loadFileAsResource(fileProductImageStorageLocation,filename);
     }
 
     private Resource loadFileAsResource(Path location,String filename){
@@ -75,6 +118,10 @@ public class FileStorageService {
     }
     public void deleteLogoFile(String filename){
         deleteFile(fileLogoStorageLocation,filename);
+    }
+
+    public void deleteProductImageFile(String filename){
+        deleteFile(fileProductImageStorageLocation,filename);
     }
     private void deleteFile(Path location,String filename){
         try{
