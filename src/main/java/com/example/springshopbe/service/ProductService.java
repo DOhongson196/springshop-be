@@ -6,6 +6,8 @@ import com.example.springshopbe.domain.Product;
 import com.example.springshopbe.domain.ProductImage;
 import com.example.springshopbe.dto.ProductBriefDto;
 import com.example.springshopbe.dto.ProductDto;
+import com.example.springshopbe.dto.ProductImageDto;
+import com.example.springshopbe.exception.ProductException;
 import com.example.springshopbe.repository.ProductImageRepository;
 import com.example.springshopbe.repository.ProductRepository;
 import org.springframework.beans.BeanUtils;
@@ -74,6 +76,31 @@ public class ProductService {
 
         var savedProduct = productRepository.save(entity);
         dto.setId(savedProduct.getId());
+
+        return dto;
+    }
+
+    public ProductDto getEditedProductById(Long id){
+        var found = productRepository.findById(id)
+                .orElseThrow(() -> new ProductException("Product Not Found"));
+        ProductDto dto = new ProductDto();
+        BeanUtils.copyProperties(found,dto);
+
+        dto.setCategoryId(found.getCategory().getId());
+        dto.setManufacturerId(found.getManufacturer().getId());
+
+        var images = found.getImages().stream().map(item ->{
+            ProductImageDto imgDto = new ProductImageDto();
+
+            BeanUtils.copyProperties(item,imgDto);
+            return imgDto;
+        }).collect(Collectors.toList());
+
+        dto.setImages(images);
+
+        ProductImageDto imageDto = new ProductImageDto();
+        BeanUtils.copyProperties(found.getImage(),imageDto);
+        dto.setImage(imageDto);
 
         return dto;
     }

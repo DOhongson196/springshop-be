@@ -58,6 +58,10 @@ public class ProductController {
         return new ResponseEntity<>(savedDto,HttpStatus.CREATED);
     }
 
+    @GetMapping("/{id}/getedit")
+    public ResponseEntity<?> getEditedProduct(@PathVariable Long id){
+        return new ResponseEntity<>(productService.getEditedProductById(id),HttpStatus.OK);
+    }
     @GetMapping("/images/{filename:.+}")
     public ResponseEntity<?> downloadFile(@PathVariable String filename, HttpServletRequest request){
         Resource resource = fileStorageService.loadProductImageFileAsResource(filename);
