@@ -65,11 +65,11 @@ public class Product extends AbstractEntity {
     @JoinTable(name = "product_product_images",
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "product_images_id"))
-    private Set<ProductImage> Images = new LinkedHashSet<>();
+    private Set<ProductImage> images = new LinkedHashSet<>();
 
     @OneToOne(orphanRemoval = true)
     @JoinColumn(name = "product_image_id")
-    private ProductImage Image;
+    private ProductImage image;
 
     @Column(name = "status")
     private ProductStatus status;

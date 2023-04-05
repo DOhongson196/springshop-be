@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -77,6 +78,55 @@ public class ProductService {
         var savedProduct = productRepository.save(entity);
         dto.setId(savedProduct.getId());
 
+        return dto;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    public ProductDto updateProduct(Long id, ProductDto dto){
+        var found = productRepository.findById(id)
+                .orElseThrow(() -> new ProductException("Product not found"));
+        String ignoreFields[] = new String[]{"createdDate","image","images","viewCount"};
+        BeanUtils.copyProperties(dto,found,ignoreFields);
+
+        if(dto.getImage().getId() != null && found.getImage().getId() != dto.getImage().getId()){
+            fileStorageService.deleteProductImageFile(found.getImage().getFilename());
+            ProductImage img = new ProductImage();
+            BeanUtils.copyProperties(dto.getImages(),img);
+            productImageRepository.save(img);
+            found.setImage(img);
+        }
+        var manuF = new Manufacturer();
+        manuF.setId(dto.getManufacturerId());
+        found.setManufacturer(manuF);
+
+        var cate = new Category();
+        cate.setId(dto.getCategoryId());
+        found.setCategory(cate);
+
+        if(dto.getImages().size() > 0){
+            var toDeleteFile = new ArrayList<ProductImage>();
+
+            found.getImages().stream().forEach(item -> {
+                var existed = dto.getImages().stream().anyMatch(img -> img.getId()== item.getId());
+
+                if(!existed) toDeleteFile.add(item);
+            });
+
+            if(toDeleteFile.size() >0){
+                toDeleteFile.stream().forEach(item ->{
+                    fileStorageService.deleteProductImageFile(item.getFilename());
+                    productImageRepository.delete(item);
+                });
+            }
+            var imgList = dto.getImages().stream().map(item -> {
+                ProductImage img = new ProductImage();
+                BeanUtils.copyProperties(item,img);
+                return img;
+            }).collect(Collectors.toSet());
+            found.setImages(imgList);
+        }
+        var savedEntity = productRepository.save(found);
+        dto.setId(savedEntity.getId());
         return dto;
     }
 

@@ -41,7 +41,7 @@ public class ProductController {
 
     @GetMapping("/find")
     public ResponseEntity<?> getProductBriefByName(@RequestParam("query") String query,
-                                             @PageableDefault(size=2,sort="name",direction = Sort.Direction.ASC) Pageable pageable){
+                                             @PageableDefault(size=5,sort="name",direction = Sort.Direction.ASC) Pageable pageable){
 
         return new ResponseEntity<>(productService.getProductBriefsByName(query,pageable),HttpStatus.OK);
     }
@@ -62,6 +62,22 @@ public class ProductController {
     public ResponseEntity<?> getEditedProduct(@PathVariable Long id){
         return new ResponseEntity<>(productService.getEditedProductById(id),HttpStatus.OK);
     }
+
+    @PatchMapping(value = "/{id}/all")
+    public ResponseEntity<?> updateProduct(@PathVariable Long id,
+                                           @Valid @RequestBody ProductDto dto,
+                                           BindingResult bindingResult){
+        ResponseEntity<?> responseEntity = mapValidationErrorService.mapValidationFields(bindingResult);
+        if(responseEntity!=null){
+            return responseEntity;
+        }
+
+        var updatedDto = productService.updateProduct(id,dto);
+
+        return new ResponseEntity<>(updatedDto,HttpStatus.CREATED);
+
+    }
+
     @GetMapping("/images/{filename:.+}")
     public ResponseEntity<?> downloadFile(@PathVariable String filename, HttpServletRequest request){
         Resource resource = fileStorageService.loadProductImageFileAsResource(filename);
