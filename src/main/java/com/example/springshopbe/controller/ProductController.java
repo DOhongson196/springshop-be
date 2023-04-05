@@ -113,4 +113,18 @@ public class ProductController {
         return new ResponseEntity<>(dto,HttpStatus.CREATED);
 
     }
+
+    @DeleteMapping("/images/{fileName:.+}")
+    public  ResponseEntity<?> deleteImage(@PathVariable String fileName){
+        fileStorageService.deleteProductImageFile(fileName);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id){
+        productService.deleteProductById(id);
+
+        return new ResponseEntity<>("Product id " + id + " deleted",HttpStatus.OK);
+    }
 }

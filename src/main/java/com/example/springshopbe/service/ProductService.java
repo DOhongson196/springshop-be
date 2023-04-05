@@ -172,4 +172,23 @@ public class ProductService {
         dto.setImages(newList);
         return entityList;
     }
+
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteProductById(Long id){
+        var found = productRepository.findById(id)
+                .orElseThrow(() ->new ProductException("Product not found"));
+        if(found.getImage() != null){
+            fileStorageService.deleteProductImageFile(found.getImage().getFilename());
+
+            productImageRepository.delete(found.getImage());
+        }
+        if(found.getImages().size()>0){
+            found.getImages().stream().forEach(item ->{
+                fileStorageService.deleteProductImageFile(item.getFilename());
+                productImageRepository.delete(item);
+            });
+        }
+        productRepository.delete(found);
+
+    }
 }
