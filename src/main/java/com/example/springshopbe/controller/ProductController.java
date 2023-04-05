@@ -1,5 +1,6 @@
 package com.example.springshopbe.controller;
 
+import com.example.springshopbe.dto.ManufacturerDto;
 import com.example.springshopbe.dto.ProductDto;
 import com.example.springshopbe.dto.ProductImageDto;
 import com.example.springshopbe.exception.FileStorageException;
@@ -11,6 +12,10 @@ import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins= {"*"}, maxAge = 4800, allowCredentials = "false" )
 @RestController
@@ -31,6 +38,13 @@ public class ProductController {
 
     @Autowired
     ProductService productService;
+
+    @GetMapping("/find")
+    public ResponseEntity<?> getProductBriefByName(@RequestParam("query") String query,
+                                             @PageableDefault(size=2,sort="name",direction = Sort.Direction.ASC) Pageable pageable){
+
+        return new ResponseEntity<>(productService.getProductBriefsByName(query,pageable),HttpStatus.OK);
+    }
 
     @PostMapping
     public ResponseEntity<?> createProduct(@Valid @RequestBody ProductDto dto, BindingResult bindingResult){

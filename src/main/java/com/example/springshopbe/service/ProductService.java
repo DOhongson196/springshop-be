@@ -4,11 +4,15 @@ import com.example.springshopbe.domain.Category;
 import com.example.springshopbe.domain.Manufacturer;
 import com.example.springshopbe.domain.Product;
 import com.example.springshopbe.domain.ProductImage;
+import com.example.springshopbe.dto.ProductBriefDto;
 import com.example.springshopbe.dto.ProductDto;
 import com.example.springshopbe.repository.ProductImageRepository;
 import com.example.springshopbe.repository.ProductRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,14 +28,33 @@ public class ProductService {
     private ProductImageRepository productImageRepository;
     @Autowired
     private FileStorageService fileStorageService;
+
+    public Page<ProductBriefDto> getProductBriefsByName(String name, Pageable pageable){
+        var list = productRepository.findByNameContainsIgnoreCase(name,pageable);
+
+        var newList = list.getContent().stream().map(item ->{
+            ProductBriefDto dto = new ProductBriefDto();
+            BeanUtils.copyProperties(item,dto);
+
+            dto.setCategoryName(item.getCategory().getName());
+            dto.setManufacturerName(item.getManufacturer().getName());
+            dto.setImageFilename(item.getImage().getFilename());
+
+            return dto;
+        }).collect(Collectors.toList());
+
+        var newPage = new PageImpl<ProductBriefDto>(newList,list.getPageable(),list.getTotalElements());
+
+        return newPage;
+    }
     @Transactional(rollbackFor = Exception.class)
     public ProductDto insertProduct(ProductDto dto){
         Product entity = new Product();
         BeanUtils.copyProperties(dto,entity);
 
-        var manuf = new Manufacturer();
-        manuf.setId(dto.getManufacturerId());
-        entity.setManufacturer(manuf);
+        var manuF = new Manufacturer();
+        manuF.setId(dto.getManufacturerId());
+        entity.setManufacturer(manuF);
 
         var cate = new Category();
         cate.setId(dto.getCategoryId());

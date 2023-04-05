@@ -38,4 +38,11 @@ public class CustomException extends ResponseEntityExceptionHandler {
 
         return  new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(ProductException.class)
+    public final ResponseEntity<Object> handlerProductException(ProductException ex, WebRequest request){
+        ExceptionResponse exceptionResponse = new ExceptionResponse(ex.getMessage());
+
+        return  new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
 }
